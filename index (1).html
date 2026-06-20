@@ -1,0 +1,1157 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
+  <meta name="theme-color" content="#C47138">
+  <meta name="mobile-web-app-capable" content="yes">
+  <meta name="apple-mobile-web-app-capable" content="yes">
+  <meta name="apple-mobile-web-app-status-bar-style" content="default">
+  <title>AquaSafe — Water Quality Monitor</title>
+  <link rel="preconnect" href="https://fonts.googleapis.com">
+  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+  <link href="https://fonts.googleapis.com/css2?family=DM+Serif+Display&family=Inter:wght@400;500;600&family=JetBrains+Mono:wght@400;500&display=swap" rel="stylesheet">
+  <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.5.0/css/all.min.css">
+  <style>
+    *, *::before, *::after { box-sizing: border-box; margin: 0; padding: 0; }
+
+    :root {
+      --bg:           #FFFCF8;
+      --bg-card:      #FFF4E6;
+      --border:       #F0D8B8;
+      --border-mid:   #E0C09A;
+      --text:         #2C1503;
+      --text-mid:     #7A4028;
+      --text-soft:    #B07848;
+      --accent:       #C47138;
+      --accent-dark:  #8A4A1E;
+      --safe:         #1A9C3E;
+      --safe-bg:      #D4F2DE;
+      --safe-col:     #0D6B28;
+      --marginal:     #C07800;
+      --marginal-bg:  #FEE9BE;
+      --marginal-col: #8A5A00;
+      --unsafe:       #C82B2B;
+      --unsafe-bg:    #FCCFCE;
+      --unsafe-col:   #8A1A1A;
+      --font-serif:   'DM Serif Display', Georgia, serif;
+      --font-sans:    'Inter', system-ui, sans-serif;
+      --font-mono:    'JetBrains Mono', 'Courier New', monospace;
+      --r-md: 14px; --r-lg: 20px; --r-xl: 28px;
+    }
+
+    html, body {
+      height: 100%; width: 100%; overflow: hidden;
+      background: #C47138;
+      font-family: var(--font-sans);
+      -webkit-font-smoothing: antialiased;
+    }
+
+    #app {
+      position: fixed; inset: 0;
+      display: flex; justify-content: center; align-items: center;
+      background: radial-gradient(ellipse at 30% 0%, #F5C27A 0%, #C47138 55%, #7A3010 100%);
+    }
+
+    #shell {
+      width: 100%; max-width: 430px;
+      height: 100%; max-height: 920px;
+      background: var(--bg);
+      display: flex; flex-direction: column;
+      overflow: hidden;
+      border-radius: 40px;
+      box-shadow: 0 40px 80px rgba(44,21,3,0.45);
+    }
+
+    @media (max-width: 430px) {
+      #app { background: var(--bg); }
+      #shell { max-height: 100%; border-radius: 0; box-shadow: none; }
+    }
+
+    /* ── HEADER ── */
+    .header {
+      display: flex; align-items: center; justify-content: space-between;
+      padding: 16px 18px 13px;
+      border-bottom: 1px solid var(--border);
+      background: var(--bg);
+      flex-shrink: 0; z-index: 10;
+    }
+    .logo { font-family: var(--font-serif); font-size: 22px; color: var(--accent); letter-spacing: -0.4px; }
+    .logo span { color: var(--text); }
+    .header-right { display: flex; align-items: center; gap: 8px; }
+
+    .chip {
+      display: flex; align-items: center; gap: 5px;
+      padding: 5px 11px; border-radius: 20px;
+      background: var(--bg-card); border: 1px solid var(--border);
+      font-size: 11px; font-weight: 500; color: var(--text-mid);
+      cursor: pointer; font-family: var(--font-sans);
+      transition: background 0.15s; white-space: nowrap;
+    }
+    .chip:hover { background: var(--border); }
+    .chip i { font-size: 11px; }
+
+    /* ── SCROLL AREA ── */
+    .content { flex: 1; overflow-y: auto; overflow-x: hidden; -webkit-overflow-scrolling: touch; }
+    .content::-webkit-scrollbar { display: none; }
+
+    /* ── CONNECT SCREEN (shown when no device) ── */
+    #connect-screen {
+      display: flex; flex-direction: column;
+      align-items: center; justify-content: center;
+      height: 100%; padding: 32px 28px; text-align: center;
+    }
+    .connect-icon-wrap {
+      width: 96px; height: 96px; border-radius: 50%;
+      background: var(--bg-card); border: 2px solid var(--border);
+      display: flex; align-items: center; justify-content: center;
+      margin-bottom: 24px;
+    }
+    .connect-icon-wrap i { font-size: 40px; color: var(--accent); }
+    .connect-title {
+      font-family: var(--font-serif); font-size: 26px;
+      color: var(--text); margin-bottom: 10px; line-height: 1.1;
+    }
+    .connect-sub {
+      font-size: 13px; color: var(--text-soft);
+      line-height: 1.6; margin-bottom: 36px; max-width: 260px;
+    }
+    .connect-error {
+      margin-top: 16px; padding: 12px 16px;
+      background: var(--unsafe-bg); border: 1px solid #F5C0BF;
+      border-radius: var(--r-md); font-size: 12px;
+      color: var(--unsafe-col); line-height: 1.5;
+      display: none; text-align: left;
+    }
+    .ios-note {
+      margin-top: 20px; padding: 12px 16px;
+      background: var(--bg-card); border: 1px solid var(--border);
+      border-radius: var(--r-md); font-size: 11px;
+      color: var(--text-soft); line-height: 1.6; text-align: left;
+    }
+    .ios-note strong { color: var(--text-mid); }
+
+    /* ── CONNECTING STATE ── */
+    #connecting-screen {
+      display: none; flex-direction: column;
+      align-items: center; justify-content: center;
+      height: 100%; padding: 32px 28px; text-align: center;
+    }
+    .pulse-ring {
+      width: 96px; height: 96px; border-radius: 50%;
+      border: 3px solid var(--accent);
+      display: flex; align-items: center; justify-content: center;
+      margin-bottom: 24px; position: relative;
+      animation: pulse-ring 1.8s ease-out infinite;
+    }
+    .pulse-ring i { font-size: 36px; color: var(--accent); }
+    @keyframes pulse-ring {
+      0%   { box-shadow: 0 0 0 0 rgba(196,113,56,0.4); }
+      70%  { box-shadow: 0 0 0 20px rgba(196,113,56,0); }
+      100% { box-shadow: 0 0 0 0 rgba(196,113,56,0); }
+    }
+    .connecting-title {
+      font-family: var(--font-serif); font-size: 24px;
+      color: var(--text); margin-bottom: 8px;
+    }
+    .connecting-sub { font-size: 13px; color: var(--text-soft); line-height: 1.6; margin-bottom: 28px; }
+
+    /* ── LIVE VIEW ── */
+    #view-live { display: none; }
+
+    /* Classification banner */
+    .class-banner {
+      position: relative; padding: 30px 22px 62px;
+      overflow: hidden; background: var(--safe);
+      transition: background 0.5s ease;
+    }
+    .class-banner::before {
+      content: ''; position: absolute;
+      top: -70px; right: -50px;
+      width: 200px; height: 200px; border-radius: 50%;
+      background: rgba(255,255,255,0.07);
+    }
+    .class-banner::after {
+      content: ''; position: absolute; bottom: 0; left: -20%;
+      width: 140%; height: 58px;
+      background: var(--bg); border-radius: 50% 50% 0 0;
+    }
+    .banner-inner { position: relative; z-index: 1; }
+    .banner-batt {
+      position: absolute; top: 0; right: 0; z-index: 2;
+      display: none; align-items: center; gap: 4px;
+      font-size: 11px; color: rgba(255,255,255,0.75);
+    }
+    .banner-ts { font-size: 10px; color: rgba(255,255,255,0.55); font-family: var(--font-mono); margin-bottom: 8px; }
+    .banner-eyebrow {
+      font-size: 11px; font-weight: 600; letter-spacing: 1.2px;
+      text-transform: uppercase; color: rgba(255,255,255,0.85);
+      display: flex; align-items: center; gap: 6px; margin-bottom: 4px;
+    }
+    .banner-title { font-family: var(--font-serif); font-size: 56px; color: #fff; line-height: 0.95; letter-spacing: -1.5px; margin-bottom: 10px; }
+    .banner-sub { font-size: 13px; color: rgba(255,255,255,0.83); line-height: 1.45; }
+
+    /* Parameter cards */
+    .cards-grid { display: grid; grid-template-columns: 1fr 1fr; gap: 10px; padding: 14px 14px 8px; }
+    .param-card {
+      background: var(--bg-card); border: 1px solid var(--border);
+      border-top: 3px solid var(--accent); border-radius: var(--r-lg); padding: 14px;
+      transition: border-top-color 0.3s;
+    }
+    .param-label {
+      font-size: 10px; font-weight: 600; text-transform: uppercase;
+      letter-spacing: 0.8px; color: var(--text-soft);
+      margin-bottom: 6px; display: flex; align-items: center; gap: 4px;
+    }
+    .param-label i { font-size: 11px; }
+    .param-value { font-family: var(--font-mono); font-size: 25px; color: var(--text); line-height: 1.1; }
+    .param-value .unit { font-size: 11px; color: var(--text-mid); font-family: var(--font-sans); }
+    .param-pill {
+      display: inline-block; margin-top: 6px;
+      font-size: 10px; font-weight: 700;
+      padding: 2px 9px; border-radius: 20px;
+      background: var(--safe-bg); color: var(--safe-col); letter-spacing: 0.3px;
+    }
+    .param-note { margin-top: 6px; font-size: 10px; color: var(--text-soft); }
+
+    /* Explanation panel */
+    .explain-panel {
+      margin: 4px 14px 4px;
+      background: var(--bg-card); border: 1px solid var(--border);
+      border-radius: var(--r-lg); overflow: hidden;
+    }
+    .explain-header {
+      padding: 11px 14px; font-size: 10px; font-weight: 700;
+      text-transform: uppercase; letter-spacing: 0.8px; color: var(--text-mid);
+      border-bottom: 1px solid var(--border);
+      display: flex; align-items: center; gap: 6px;
+    }
+    .explain-item { padding: 12px 14px; border-bottom: 1px solid var(--border); display: flex; gap: 10px; align-items: flex-start; }
+    .explain-item:last-child { border-bottom: none; }
+    .explain-dot { width: 8px; height: 8px; border-radius: 50%; flex-shrink: 0; margin-top: 4px; }
+    .explain-text { font-size: 12px; color: var(--text); line-height: 1.55; }
+
+    /* Live action row */
+    .live-actions { padding: 6px 14px 16px; display: flex; flex-direction: column; gap: 8px; }
+
+    /* Buttons */
+    .btn-primary {
+      width: 100%; padding: 14px;
+      background: var(--accent); color: #fff;
+      border: none; border-radius: var(--r-md);
+      font-size: 14px; font-weight: 500; cursor: pointer;
+      font-family: var(--font-sans);
+      display: flex; align-items: center; justify-content: center; gap: 8px;
+      transition: background 0.2s;
+    }
+    .btn-primary:hover { background: var(--accent-dark); }
+    .btn-primary:active { transform: scale(0.99); }
+    .btn-secondary {
+      width: 100%; padding: 11px;
+      background: transparent; color: var(--text-mid);
+      border: 1px solid var(--border-mid); border-radius: var(--r-md);
+      font-size: 13px; font-weight: 500; cursor: pointer;
+      font-family: var(--font-sans);
+      display: flex; align-items: center; justify-content: center; gap: 7px;
+      transition: background 0.2s;
+    }
+    .btn-secondary:hover { background: var(--bg-card); }
+
+    /* ── BOTTOM NAV ── */
+    .bottom-nav { display: flex; border-top: 1px solid var(--border); background: var(--bg); flex-shrink: 0; }
+    .nav-btn {
+      flex: 1; border: none; background: none;
+      padding: 10px 0 13px; cursor: pointer;
+      display: flex; flex-direction: column; align-items: center; gap: 3px;
+    }
+    .nav-btn i { font-size: 19px; color: var(--text-soft); transition: color 0.2s; }
+    .nav-btn .nav-lbl { font-size: 10px; font-weight: 600; color: var(--text-soft); letter-spacing: 0.4px; text-transform: uppercase; transition: color 0.2s; }
+    .nav-btn.active i, .nav-btn.active .nav-lbl { color: var(--accent); }
+
+    /* ── HISTORY ── */
+    .section-title { font-family: var(--font-serif); font-size: 22px; color: var(--text); padding: 18px 16px 12px; }
+    .hist-item {
+      display: flex; align-items: center; gap: 12px;
+      padding: 12px 13px;
+      background: var(--bg-card); border: 1px solid var(--border);
+      border-radius: var(--r-md); margin: 0 14px 8px;
+    }
+    .hist-dot { width: 10px; height: 10px; border-radius: 50%; flex-shrink: 0; }
+    .hist-cl { font-size: 12px; font-weight: 600; margin-bottom: 2px; }
+    .hist-vals { font-size: 10px; color: var(--text-soft); font-family: var(--font-mono); }
+    .hist-time { font-size: 10px; color: var(--text-soft); text-align: right; line-height: 1.6; flex-shrink: 0; }
+    .empty-state { text-align: center; padding: 60px 24px; color: var(--text-soft); }
+    .empty-state i { font-size: 38px; display: block; margin-bottom: 12px; }
+    .empty-state p { font-size: 13px; line-height: 1.6; }
+    .hist-footer { padding: 8px 14px 20px; font-size: 11px; color: var(--text-soft); text-align: center; }
+
+    /* ── INFO ── */
+    .info-block { background: var(--bg-card); border: 1px solid var(--border); border-radius: var(--r-lg); margin: 0 14px 12px; overflow: hidden; }
+    .info-block-title { font-size: 10px; font-weight: 700; text-transform: uppercase; letter-spacing: 0.8px; color: var(--accent); padding: 12px 14px; border-bottom: 1px solid var(--border); }
+    .info-row { display: flex; justify-content: space-between; align-items: center; padding: 9px 14px; border-bottom: 1px solid var(--border); font-size: 12px; }
+    .info-row:last-child { border-bottom: none; }
+    .info-row-label { color: var(--text-mid); }
+    .info-row-val { font-family: var(--font-mono); color: var(--text); }
+    .science-item { padding: 11px 14px; border-bottom: 1px solid var(--border); }
+    .science-item:last-child { border-bottom: none; }
+    .science-name { font-size: 12px; font-weight: 600; color: var(--text); margin-bottom: 2px; }
+    .science-eq { font-family: var(--font-mono); font-size: 11px; color: var(--accent); }
+    .science-law { font-size: 10px; color: var(--text-soft); margin-top: 2px; }
+    .info-prose { padding: 14px; font-size: 12px; color: var(--text-mid); line-height: 1.75; }
+    .info-prose strong { color: var(--text); }
+
+    /* ── LANGUAGE MODAL ── */
+    .modal-overlay { position: fixed; inset: 0; background: rgba(44,21,3,0.5); z-index: 100; display: flex; align-items: flex-end; justify-content: center; }
+    .modal-sheet { background: var(--bg); border-radius: 28px 28px 0 0; width: 100%; max-width: 430px; padding: 8px 0 40px; }
+    .modal-handle { width: 36px; height: 4px; border-radius: 2px; background: var(--border-mid); margin: 10px auto 16px; }
+    .modal-title { font-family: var(--font-serif); font-size: 20px; color: var(--text); padding: 0 20px 12px; border-bottom: 1px solid var(--border); margin-bottom: 4px; }
+    .lang-opt { display: flex; align-items: center; justify-content: space-between; padding: 14px 20px; cursor: pointer; border-bottom: 1px solid var(--border); font-size: 15px; color: var(--text); transition: background 0.1s; }
+    .lang-opt:last-child { border-bottom: none; }
+    .lang-opt:hover { background: var(--bg-card); }
+    .lang-opt .native { font-size: 13px; color: var(--text-soft); }
+    .lang-check { color: var(--accent); font-weight: 700; }
+
+    /* ── CERTIFICATE MODAL ── */
+    .cert-overlay { position: fixed; inset: 0; background: rgba(44,21,3,0.65); z-index: 100; display: flex; align-items: center; justify-content: center; padding: 20px; }
+    .cert-card { background: var(--bg); border-radius: var(--r-xl); padding: 18px; width: 100%; max-width: 390px; }
+    #cert-canvas { width: 100%; border-radius: var(--r-lg); display: block; }
+    .cert-actions { display: flex; gap: 8px; margin-top: 10px; }
+    .cert-actions .btn-secondary, .cert-actions .btn-primary { flex: 1; }
+
+    @supports (padding-bottom: env(safe-area-inset-bottom)) {
+      .bottom-nav { padding-bottom: env(safe-area-inset-bottom); }
+    }
+  </style>
+</head>
+<body>
+<div id="app">
+ <div id="shell">
+
+  <!-- HEADER -->
+  <div class="header">
+    <div class="logo">Aqua<span>Safe</span></div>
+    <div class="header-right">
+      <button class="chip" onclick="openLang()" aria-label="Change language">
+        <i class="fa-solid fa-globe"></i><span id="lang-label">EN</span>
+      </button>
+      <div class="chip" id="conn-badge">
+        <i class="fa-solid fa-circle" id="badge-dot" style="font-size:7px;color:#B07848"></i>
+        <span id="badge-text">Not connected</span>
+      </div>
+    </div>
+  </div>
+
+  <!-- SCROLLABLE CONTENT -->
+  <div class="content" id="content">
+
+    <!-- ── CONNECT SCREEN ── -->
+    <div id="connect-screen">
+      <div class="connect-icon-wrap">
+        <i class="fa-brands fa-bluetooth"></i>
+      </div>
+      <div class="connect-title" id="cs-title">Connect your device</div>
+      <div class="connect-sub" id="cs-sub">Turn on your AquaSafe sensor and tap below. Make sure Bluetooth is enabled on your phone.</div>
+      <button class="btn-primary" style="max-width:280px" onclick="startBLE()" id="btn-connect">
+        <i class="fa-brands fa-bluetooth"></i>
+        <span id="btn-connect-label">Connect to AquaSafe</span>
+      </button>
+      <div class="connect-error" id="conn-error"></div>
+      <div class="ios-note" id="ios-note" style="display:none">
+        <strong>iOS detected.</strong> Apple blocks Web Bluetooth on all iPhone browsers. Use an Android phone with Chrome to connect to the device.
+      </div>
+    </div>
+
+    <!-- ── CONNECTING SCREEN ── -->
+    <div id="connecting-screen">
+      <div class="pulse-ring">
+        <i class="fa-brands fa-bluetooth"></i>
+      </div>
+      <div class="connecting-title" id="conn-title">Connecting…</div>
+      <div class="connecting-sub" id="conn-sub">Looking for AquaSafe device nearby</div>
+      <button class="btn-secondary" style="max-width:200px" onclick="cancelConnect()" id="btn-cancel">
+        <i class="fa-solid fa-xmark"></i> <span id="btn-cancel-label">Cancel</span>
+      </button>
+    </div>
+
+    <!-- ── LIVE VIEW (shown when connected) ── -->
+    <div id="view-live">
+      <div class="class-banner" id="class-banner">
+        <div class="banner-batt" id="batt-display">
+          <i class="fa-solid fa-battery-three-quarters"></i>
+          <span id="batt-val">—</span>%
+        </div>
+        <div class="banner-inner">
+          <div class="banner-ts" id="banner-ts">—</div>
+          <div class="banner-eyebrow" id="banner-eyebrow">
+            <i class="fa-solid fa-check"></i><span>Safe</span>
+          </div>
+          <div class="banner-title" id="banner-title">SAFE</div>
+          <div class="banner-sub" id="banner-sub">Safe for drinking and daily use</div>
+        </div>
+      </div>
+
+      <div class="cards-grid">
+        <div class="param-card" id="card-ph">
+          <div class="param-label"><i class="fa-solid fa-flask-vial"></i> <span id="lbl-ph">pH Level</span></div>
+          <div class="param-value" id="val-ph">—</div>
+          <div class="param-pill" id="pill-ph">—</div>
+        </div>
+        <div class="param-card" id="card-tds">
+          <div class="param-label"><i class="fa-solid fa-water"></i> TDS</div>
+          <div class="param-value" id="val-tds">—<span class="unit"> ppm</span></div>
+          <div class="param-pill" id="pill-tds">—</div>
+        </div>
+        <div class="param-card" id="card-turb">
+          <div class="param-label"><i class="fa-solid fa-eye"></i> <span id="lbl-turb">Turbidity</span></div>
+          <div class="param-value" id="val-turb">—<span class="unit"> NTU</span></div>
+          <div class="param-pill" id="pill-turb">—</div>
+        </div>
+        <div class="param-card" id="card-temp" style="border-top-color:var(--accent)">
+          <div class="param-label"><i class="fa-solid fa-temperature-half"></i> <span id="lbl-temp">Temperature</span></div>
+          <div class="param-value" id="val-temp">—<span class="unit"> °C</span></div>
+          <div class="param-note" id="note-temp">Used for TDS correction</div>
+        </div>
+      </div>
+
+      <div class="explain-panel" id="explain-panel" style="display:none">
+        <div class="explain-header">
+          <i class="fa-solid fa-triangle-exclamation"></i>
+          <span id="explain-title">What this means</span>
+        </div>
+        <div id="explain-items"></div>
+      </div>
+
+      <div class="live-actions">
+        <button class="btn-secondary" onclick="openCert()" id="btn-share">
+          <i class="fa-solid fa-share-nodes"></i>
+          <span id="btn-share-label">Share safety certificate</span>
+        </button>
+        <button class="btn-secondary" onclick="disconnectBLE()" style="color:var(--unsafe-col);border-color:#F5C0BF">
+          <i class="fa-solid fa-plug-circle-xmark"></i>
+          <span id="btn-disconnect-label">Disconnect device</span>
+        </button>
+      </div>
+    </div><!-- end #view-live -->
+
+    <!-- ── HISTORY VIEW ── -->
+    <div id="view-history" style="display:none">
+      <div class="section-title" id="hist-title">Reading history</div>
+      <div id="hist-list">
+        <div class="empty-state">
+          <i class="fa-solid fa-clipboard-list"></i>
+          <p id="hist-empty-msg">No readings yet. Connect your device to start recording.</p>
+        </div>
+      </div>
+      <div class="hist-footer" id="hist-footer" style="display:none"></div>
+    </div>
+
+    <!-- ── INFO VIEW ── -->
+    <div id="view-info" style="display:none; padding-bottom:20px">
+      <div class="section-title">About AquaSafe</div>
+
+      <div class="info-block">
+        <div class="info-block-title">BIS IS:10500:2012 — Classification Ranges</div>
+        <div class="info-row"><span class="info-row-label">Safe pH</span><span class="info-row-val">6.5 – 8.5</span></div>
+        <div class="info-row"><span class="info-row-label">pH marginal band</span><span class="info-row-val" style="color:var(--text-soft);font-family:var(--font-sans)">None — outside is Unsafe</span></div>
+        <div class="info-row"><span class="info-row-label">Safe TDS</span><span class="info-row-val">&lt; 500 ppm</span></div>
+        <div class="info-row"><span class="info-row-label">Marginal TDS</span><span class="info-row-val">500 – 2000 ppm</span></div>
+        <div class="info-row"><span class="info-row-label">Safe turbidity</span><span class="info-row-val">&lt; 1 NTU</span></div>
+        <div class="info-row"><span class="info-row-label">Marginal turbidity</span><span class="info-row-val">1 – 5 NTU</span></div>
+      </div>
+
+      <div class="info-block">
+        <div class="info-block-title">Classification Logic</div>
+        <div class="info-prose">
+          Water is <strong>SAFE</strong> only when pH is 6.5–8.5, TDS &lt; 500 ppm, and turbidity &lt; 1 NTU.<br><br>
+          Water is <strong>MARGINAL</strong> when pH is within range but TDS is 500–2000 ppm or turbidity is 1–5 NTU. Boiling recommended.<br><br>
+          Water is <strong>UNSAFE</strong> if pH is outside 6.5–8.5 (no marginal band per IS:10500:2012), TDS ≥ 2000 ppm, or turbidity ≥ 5 NTU.
+        </div>
+      </div>
+
+      <div class="info-block">
+        <div class="info-block-title">Scientific Principles</div>
+        <div class="science-item">
+          <div class="science-name">pH Sensor</div>
+          <div class="science-eq">E = E₀ − 0.0592 × pH</div>
+          <div class="science-law">Nernst equation — electrode potential at 25°C</div>
+        </div>
+        <div class="science-item">
+          <div class="science-name">TDS Sensor</div>
+          <div class="science-eq">conductivity ∝ ion concentration</div>
+          <div class="science-law">Kohlrausch's Law of Independent Ion Migration</div>
+        </div>
+        <div class="science-item">
+          <div class="science-name">Turbidity Sensor</div>
+          <div class="science-eq">I = I₀ × e^(−μd)</div>
+          <div class="science-law">Beer–Lambert Law — light attenuation through medium</div>
+        </div>
+        <div class="science-item">
+          <div class="science-name">Temperature Correction (TDS)</div>
+          <div class="science-eq">TDS_c = TDS_raw ÷ (1 + 0.02 × (T − 25))</div>
+          <div class="science-law">Applied automatically — conductivity rises ~2% per °C</div>
+        </div>
+      </div>
+
+      <div class="info-block">
+        <div class="info-block-title">Hardware</div>
+        <div class="info-row"><span class="info-row-label">Microcontroller</span><span class="info-row-val" style="font-family:var(--font-sans)">ESP32 DevKit</span></div>
+        <div class="info-row"><span class="info-row-label">pH</span><span class="info-row-val" style="font-family:var(--font-sans)">Techtronics BNC</span></div>
+        <div class="info-row"><span class="info-row-label">TDS</span><span class="info-row-val" style="font-family:var(--font-sans)">xcluma V1.0</span></div>
+        <div class="info-row"><span class="info-row-label">Turbidity</span><span class="info-row-val" style="font-family:var(--font-sans)">Robocraze</span></div>
+        <div class="info-row"><span class="info-row-label">Temperature</span><span class="info-row-val" style="font-family:var(--font-sans)">DS18B20 1-Wire</span></div>
+        <div class="info-row"><span class="info-row-label">Connectivity</span><span class="info-row-val" style="font-family:var(--font-sans)">Bluetooth LE</span></div>
+      </div>
+
+      <div class="info-block">
+        <div class="info-block-title">About</div>
+        <div class="info-prose">
+          AquaSafe was built for <strong>URJA 2026</strong> under the theme Health &amp; Wellness. An ESP32 microcontroller reads four sensors and transmits data via Bluetooth LE to this app. Classification follows <strong>BIS IS:10500:2012</strong>, the Bureau of Indian Standards Indian Drinking Water Specification.
+        </div>
+      </div>
+    </div>
+
+  </div><!-- end .content -->
+
+  <!-- BOTTOM NAV -->
+  <nav class="bottom-nav">
+    <button class="nav-btn active" id="nb-live" onclick="switchView('live')">
+      <i class="fa-solid fa-droplet"></i>
+      <span class="nav-lbl" id="nav-lbl-live">Live</span>
+    </button>
+    <button class="nav-btn" id="nb-history" onclick="switchView('history')">
+      <i class="fa-solid fa-clock-rotate-left"></i>
+      <span class="nav-lbl" id="nav-lbl-history">History</span>
+    </button>
+    <button class="nav-btn" id="nb-info" onclick="switchView('info')">
+      <i class="fa-solid fa-circle-info"></i>
+      <span class="nav-lbl" id="nav-lbl-info">Info</span>
+    </button>
+  </nav>
+
+ </div>
+</div>
+
+<!-- LANGUAGE MODAL -->
+<div class="modal-overlay" id="lang-modal" style="display:none" onclick="closeLangModal(event)">
+  <div class="modal-sheet" onclick="event.stopPropagation()">
+    <div class="modal-handle"></div>
+    <div class="modal-title">Choose language</div>
+    <div class="lang-opt" onclick="setLang('en')">English <span class="native">English</span><span class="lang-check" id="lc-en">✓</span></div>
+    <div class="lang-opt" onclick="setLang('hi')">Hindi <span class="native">हिन्दी</span><span class="lang-check" id="lc-hi" style="opacity:0">✓</span></div>
+    <div class="lang-opt" onclick="setLang('ta')">Tamil <span class="native">தமிழ்</span><span class="lang-check" id="lc-ta" style="opacity:0">✓</span></div>
+    <div class="lang-opt" onclick="setLang('bn')">Bengali <span class="native">বাংলা</span><span class="lang-check" id="lc-bn" style="opacity:0">✓</span></div>
+    <div class="lang-opt" onclick="setLang('mr')">Marathi <span class="native">मराठी</span><span class="lang-check" id="lc-mr" style="opacity:0">✓</span></div>
+    <div class="lang-opt" onclick="setLang('te')">Telugu <span class="native">తెలుగు</span><span class="lang-check" id="lc-te" style="opacity:0">✓</span></div>
+  </div>
+</div>
+
+<!-- CERTIFICATE MODAL -->
+<div class="cert-overlay" id="cert-overlay" style="display:none" onclick="closeCertModal(event)">
+  <div class="cert-card" onclick="event.stopPropagation()">
+    <canvas id="cert-canvas" width="720" height="480"></canvas>
+    <div class="cert-actions">
+      <button class="btn-secondary" onclick="downloadCert()"><i class="fa-solid fa-download"></i> Download</button>
+      <button class="btn-primary" onclick="shareCert()"><i class="fa-brands fa-whatsapp"></i> Share</button>
+    </div>
+    <button class="btn-secondary" style="margin-top:8px;width:100%" onclick="closeCertModal()">Close</button>
+  </div>
+</div>
+
+<script>
+// ════════════════════════════════════════════════
+// TRANSLATIONS
+// ════════════════════════════════════════════════
+const LANGS = {
+  en: {
+    SAFE:'SAFE', MARGINAL:'MARGINAL', UNSAFE:'UNSAFE',
+    safeLabel:'Safe', marginalLabel:'Marginal', unsafeLabel:'Unsafe',
+    safeSub:'Safe for drinking and daily use',
+    marginalSub:'Use with caution — boiling recommended',
+    unsafeSub:'Not suitable for drinking or cooking',
+    live:'Live', history:'History', info:'Info',
+    connect:'Connect to AquaSafe', disconnect:'Disconnect device',
+    shareCert:'Share safety certificate',
+    notConnected:'Not connected', connected:'Connected',
+    whatThisMeans:'What this means',
+    histTitle:'Reading history',
+    noReadings:'No readings yet. Connect your device to start recording.',
+    refOnly:'Used for TDS correction',
+    csTitle:'Connect your device',
+    csSub:'Turn on your AquaSafe sensor and tap below. Make sure Bluetooth is enabled on your phone.',
+    connTitle:'Connecting…', connSub:'Looking for AquaSafe device nearby',
+    cancel:'Cancel',
+    ph_low:'pH is too acidic ({v}). Acidic water can corrode pipes and irritate the digestive tract. Possible causes: industrial runoff, acid rain, or natural geology.',
+    ph_high:'pH is too alkaline ({v}). Alkaline water tastes bitter and reduces disinfectant effectiveness. Possible causes: concrete leaching or industrial effluent.',
+    tds_marginal:'TDS is elevated ({v} ppm). Higher than ideal mineral content — usable but boiling is recommended before drinking.',
+    tds_unsafe:'TDS is dangerously high ({v} ppm). Not safe for drinking or cooking. Possible causes: sewage contamination or industrial waste.',
+    turb_marginal:'Water is slightly cloudy ({v} NTU). Suspended particles present — filter and boil before use.',
+    turb_unsafe:'Water is very turbid ({v} NTU). Can carry bacteria, viruses, and parasites. Do not use for drinking, cooking, or bathing.',
+  },
+  hi: {
+    SAFE:'सुरक्षित', MARGINAL:'सीमांत', UNSAFE:'असुरक्षित',
+    safeLabel:'सुरक्षित', marginalLabel:'सीमांत', unsafeLabel:'असुरक्षित',
+    safeSub:'पीने और दैनिक उपयोग के लिए सुरक्षित',
+    marginalSub:'सावधानी से उपयोग करें — उबालना अनुशंसित है',
+    unsafeSub:'पीने या खाना पकाने के लिए उपयुक्त नहीं',
+    live:'लाइव', history:'इतिहास', info:'जानकारी',
+    connect:'AquaSafe से कनेक्ट करें', disconnect:'डिवाइस डिस्कनेक्ट करें',
+    shareCert:'सुरक्षा प्रमाणपत्र साझा करें',
+    notConnected:'कनेक्ट नहीं है', connected:'कनेक्टेड',
+    whatThisMeans:'इसका अर्थ', histTitle:'रीडिंग इतिहास',
+    noReadings:'अभी तक कोई रीडिंग नहीं। डिवाइस कनेक्ट करें।',
+    refOnly:'TDS सुधार के लिए',
+    csTitle:'अपना डिवाइस कनेक्ट करें',
+    csSub:'AquaSafe सेंसर चालू करें और नीचे टैप करें।',
+    connTitle:'कनेक्ट हो रहा है…', connSub:'AquaSafe डिवाइस खोज रहे हैं',
+    cancel:'रद्द करें',
+    ph_low:'pH बहुत अम्लीय है ({v})। अम्लीय पानी पाइपों को नुकसान पहुंचा सकता है।',
+    ph_high:'pH बहुत क्षारीय है ({v})। क्षारीय पानी कड़वा स्वाद देता है।',
+    tds_marginal:'TDS बढ़ा हुआ है ({v} ppm)। पीने से पहले उबालें।',
+    tds_unsafe:'TDS बहुत अधिक है ({v} ppm)। यह पानी पीने योग्य नहीं है।',
+    turb_marginal:'पानी थोड़ा गंदला है ({v} NTU)। उपयोग से पहले उबालें।',
+    turb_unsafe:'पानी बहुत गंदला है ({v} NTU)। इसका उपयोग न करें।',
+  },
+  ta: {
+    SAFE:'பாதுகாப்பானது', MARGINAL:'நடுத்தரம்', UNSAFE:'பாதுகாப்பற்றது',
+    safeLabel:'பாதுகாப்பு', marginalLabel:'நடுத்தரம்', unsafeLabel:'பாதுகாப்பற்றது',
+    safeSub:'குடிக்கவும் தினசரி பயன்பாட்டிற்கும் பாதுகாப்பானது',
+    marginalSub:'எச்சரிக்கையுடன் பயன்படுத்தவும் — கொதிக்க வைக்கவும்',
+    unsafeSub:'குடிக்கவோ சமைக்கவோ பொருத்தமற்றது',
+    live:'நேரடி', history:'வரலாறு', info:'தகவல்',
+    connect:'AquaSafe இணை', disconnect:'சாதனத்தை துண்டி',
+    shareCert:'பாதுகாப்பு சான்றிதழை பகிர்',
+    notConnected:'இணைக்கப்படவில்லை', connected:'இணைக்கப்பட்டது',
+    whatThisMeans:'இதன் அர்த்தம்', histTitle:'அளவீட்டு வரலாறு',
+    noReadings:'இன்னும் அளவீடுகள் இல்லை.',
+    refOnly:'TDS திருத்தத்திற்கு',
+    csTitle:'உங்கள் சாதனத்தை இணைக்கவும்',
+    csSub:'AquaSafe சென்சாரை இயக்கி கீழே தட்டவும்.',
+    connTitle:'இணைக்கிறது…', connSub:'AquaSafe சாதனத்தை தேடுகிறது',
+    cancel:'ரத்து செய்',
+    ph_low:'pH மிகவும் அமிலமாக உள்ளது ({v}).',
+    ph_high:'pH மிகவும் காரமாக உள்ளது ({v}).',
+    tds_marginal:'TDS அதிகமாக உள்ளது ({v} ppm). கொதிக்க வைக்கவும்.',
+    tds_unsafe:'TDS மிகவும் அதிகமாக உள்ளது ({v} ppm).',
+    turb_marginal:'நீர் சற்று கலங்கலாக உள்ளது ({v} NTU).',
+    turb_unsafe:'நீர் மிகவும் கலங்கலாக உள்ளது ({v} NTU).',
+  },
+  bn: {
+    SAFE:'নিরাপদ', MARGINAL:'মধ্যম', UNSAFE:'অনিরাপদ',
+    safeLabel:'নিরাপদ', marginalLabel:'মধ্যম', unsafeLabel:'অনিরাপদ',
+    safeSub:'পান করার এবং দৈনন্দিন ব্যবহারের জন্য নিরাপদ',
+    marginalSub:'সতর্কতার সাথে ব্যবহার করুন — ফুটানো প্রস্তাবিত',
+    unsafeSub:'পান করা বা রান্না করার জন্য উপযুক্ত নয়',
+    live:'সরাসরি', history:'ইতিহাস', info:'তথ্য',
+    connect:'AquaSafe সংযোগ করুন', disconnect:'ডিভাইস বিচ্ছিন্ন করুন',
+    shareCert:'নিরাপত্তা সনদ শেয়ার করুন',
+    notConnected:'সংযুক্ত নয়', connected:'সংযুক্ত',
+    whatThisMeans:'এর মানে কী', histTitle:'রিডিং ইতিহাস',
+    noReadings:'এখনো কোনো রিডিং নেই।',
+    refOnly:'TDS সংশোধনের জন্য',
+    csTitle:'আপনার ডিভাইস সংযোগ করুন',
+    csSub:'AquaSafe সেন্সর চালু করুন এবং নিচে ট্যাপ করুন।',
+    connTitle:'সংযোগ হচ্ছে…', connSub:'AquaSafe ডিভাইস খুঁজছে',
+    cancel:'বাতিল',
+    ph_low:'pH অতিরিক্ত অম্লীয় ({v})।',
+    ph_high:'pH অতিরিক্ত ক্ষারীয় ({v})।',
+    tds_marginal:'TDS বেশি ({v} ppm)। ফুটিয়ে নিন।',
+    tds_unsafe:'TDS অত্যন্ত বেশি ({v} ppm)।',
+    turb_marginal:'পানি সামান্য ঘোলা ({v} NTU)।',
+    turb_unsafe:'পানি অত্যন্ত ঘোলা ({v} NTU)।',
+  },
+  mr: {
+    SAFE:'सुरक्षित', MARGINAL:'सीमांत', UNSAFE:'असुरक्षित',
+    safeLabel:'सुरक्षित', marginalLabel:'सीमांत', unsafeLabel:'असुरक्षित',
+    safeSub:'पिण्यासाठी आणि दैनंदिन वापरासाठी सुरक्षित',
+    marginalSub:'सावधानीने वापरा — उकळणे शिफारसीय',
+    unsafeSub:'पिण्यासाठी किंवा स्वयंपाकासाठी योग्य नाही',
+    live:'थेट', history:'इतिहास', info:'माहिती',
+    connect:'AquaSafe कनेक्ट करा', disconnect:'डिव्हाइस डिस्कनेक्ट करा',
+    shareCert:'सुरक्षा प्रमाणपत्र शेअर करा',
+    notConnected:'कनेक्ट नाही', connected:'कनेक्टेड',
+    whatThisMeans:'याचा अर्थ', histTitle:'रीडिंग इतिहास',
+    noReadings:'अद्याप कोणतीही रीडिंग नाही.',
+    refOnly:'TDS दुरुस्तीसाठी',
+    csTitle:'तुमचे डिव्हाइस कनेक्ट करा',
+    csSub:'AquaSafe सेन्सर चालू करा आणि खाली टॅप करा.',
+    connTitle:'कनेक्ट होत आहे…', connSub:'AquaSafe डिव्हाइस शोधत आहे',
+    cancel:'रद्द करा',
+    ph_low:'pH खूप अम्लीय आहे ({v}).',
+    ph_high:'pH खूप क्षारीय आहे ({v}).',
+    tds_marginal:'TDS वाढलेला आहे ({v} ppm). उकळा.',
+    tds_unsafe:'TDS अत्यंत जास्त आहे ({v} ppm).',
+    turb_marginal:'पाणी किंचित ढगाळ आहे ({v} NTU).',
+    turb_unsafe:'पाणी खूप ढगाळ आहे ({v} NTU).',
+  },
+  te: {
+    SAFE:'సురక్షితం', MARGINAL:'మధ్యస్థం', UNSAFE:'అసురక్షితం',
+    safeLabel:'సురక్షితం', marginalLabel:'మధ్యస్థం', unsafeLabel:'అసురక్షితం',
+    safeSub:'త్రాగడానికి మరియు రోజువారీ ఉపయోగానికి సురక్షితం',
+    marginalSub:'జాగ్రత్తగా ఉపయోగించండి — మరగించడం సూచించబడింది',
+    unsafeSub:'త్రాగడానికి లేదా వండటానికి తగినది కాదు',
+    live:'నేరుగా', history:'చరిత్ర', info:'సమాచారం',
+    connect:'AquaSafe కనెక్ట్ చేయండి', disconnect:'పరికరాన్ని డిస్‌కనెక్ట్ చేయండి',
+    shareCert:'భద్రతా ధృవీకరణపత్రాన్ని పంచుకోండి',
+    notConnected:'కనెక్ట్ కాలేదు', connected:'కనెక్ట్ అయింది',
+    whatThisMeans:'దీని అర్థం', histTitle:'రీడింగ్ చరిత్ర',
+    noReadings:'ఇంకా రీడింగ్‌లు లేవు.',
+    refOnly:'TDS దిద్దుబాటు కోసం',
+    csTitle:'మీ పరికరాన్ని కనెక్ట్ చేయండి',
+    csSub:'AquaSafe సెన్సార్‌ను ఆన్ చేసి దిగువ నొక్కండి.',
+    connTitle:'కనెక్ట్ అవుతోంది…', connSub:'AquaSafe పరికరాన్ని వెతుకుతోంది',
+    cancel:'రద్దు చేయి',
+    ph_low:'pH చాలా ఆమ్లంగా ఉంది ({v}).',
+    ph_high:'pH చాలా క్షారంగా ఉంది ({v}).',
+    tds_marginal:'TDS పెరిగింది ({v} ppm). మరగించండి.',
+    tds_unsafe:'TDS చాలా ఎక్కువగా ఉంది ({v} ppm).',
+    turb_marginal:'నీరు కొంచెం మేఘంగా ఉంది ({v} NTU).',
+    turb_unsafe:'నీరు చాలా మేఘంగా ఉంది ({v} NTU).',
+  }
+};
+
+// ════════════════════════════════════════════════
+// STATE
+// ════════════════════════════════════════════════
+let lang      = 'en';
+let bleDevice = null;
+let lastData  = null;
+let connecting = false;
+
+// ════════════════════════════════════════════════
+// CLASSIFICATION — BIS IS:10500:2012
+// ════════════════════════════════════════════════
+function classify(pH, tds, turb) {
+  if (pH < 6.5 || pH > 8.5) return 'UNSAFE';   // pH: no marginal zone
+  if (tds  >= 2000)          return 'UNSAFE';
+  if (turb >= 5)             return 'UNSAFE';
+  if (tds  >= 500 || turb >= 1) return 'MARGINAL';
+  return 'SAFE';
+}
+
+function pStatus(p, v) {
+  if (p === 'ph')   return (v >= 6.5 && v <= 8.5) ? 'safe' : 'unsafe';
+  if (p === 'tds')  return v < 500 ? 'safe' : v < 2000 ? 'marginal' : 'unsafe';
+  if (p === 'turb') return v < 1   ? 'safe' : v < 5    ? 'marginal' : 'unsafe';
+  return 'safe';
+}
+
+function correctTDS(raw, temp) {
+  return raw / (1 + 0.02 * (temp - 25));
+}
+
+// ════════════════════════════════════════════════
+// UPDATE LIVE UI FROM DEVICE DATA
+// ════════════════════════════════════════════════
+const CL_COLOR = { SAFE:'#1A9C3E', MARGINAL:'#C07800', UNSAFE:'#C82B2B' };
+const CL_ICON  = { SAFE:'fa-check', MARGINAL:'fa-triangle-exclamation', UNSAFE:'fa-xmark' };
+const PILL_CSS = {
+  safe:     { bg:'#D4F2DE', color:'#0D6B28' },
+  marginal: { bg:'#FEE9BE', color:'#8A5A00' },
+  unsafe:   { bg:'#FCCFCE', color:'#8A1A1A' },
+};
+
+function updateUI(raw) {
+  const t    = LANGS[lang];
+  const pH   = raw.pH;
+  const temp = raw.temp_C;
+  const turb = raw.turbidity_NTU;
+  const tds  = correctTDS(raw.TDS_ppm, temp);
+  const cl   = classify(pH, tds, turb);
+
+  lastData = { ...raw, TDS_corrected: tds, cl };
+
+  // Banner
+  document.getElementById('class-banner').style.background = CL_COLOR[cl];
+  document.getElementById('banner-eyebrow').innerHTML =
+    `<i class="fa-solid ${CL_ICON[cl]}"></i><span>${t[cl+'Label']}</span>`;
+  document.getElementById('banner-title').textContent = t[cl];
+  document.getElementById('banner-sub').textContent   = t[cl+'Sub'];
+
+  const now = new Date();
+  document.getElementById('banner-ts').textContent =
+    now.toLocaleTimeString([], { hour:'2-digit', minute:'2-digit', second:'2-digit' });
+
+  if (raw.battery_pct != null) {
+    document.getElementById('batt-display').style.display = 'flex';
+    document.getElementById('batt-val').textContent = raw.battery_pct;
+  }
+
+  setPCard('ph',   pH.toFixed(2),        '',     pStatus('ph',   pH));
+  setPCard('tds',  Math.round(tds)+'',   ' ppm', pStatus('tds',  tds));
+  setPCard('turb', turb.toFixed(2),      ' NTU', pStatus('turb', turb));
+  document.getElementById('val-temp').innerHTML =
+    temp.toFixed(1) + '<span class="unit"> °C</span>';
+
+  renderExplanations(pH, tds, turb, t);
+  saveReading({ pH, tds, turb, temp, cl, ts: now.toISOString() });
+}
+
+function setPCard(id, val, unit, status) {
+  const t   = LANGS[lang];
+  const css = PILL_CSS[status];
+  document.getElementById('val-'  + id).innerHTML = val + (unit ? `<span class="unit">${unit}</span>` : '');
+  const pill = document.getElementById('pill-' + id);
+  pill.style.background = css.bg;
+  pill.style.color      = css.color;
+  pill.textContent      = t[status+'Label'] || status;
+  document.getElementById('card-' + id).style.borderTopColor =
+    CL_COLOR[status === 'safe' ? 'SAFE' : status === 'marginal' ? 'MARGINAL' : 'UNSAFE'];
+}
+
+function renderExplanations(pH, tds, turb, t) {
+  const issues = [];
+  if (pH  <  6.5)  issues.push({ key:'ph_low',       v: pH.toFixed(2),       col: CL_COLOR.UNSAFE });
+  if (pH  >  8.5)  issues.push({ key:'ph_high',      v: pH.toFixed(2),       col: CL_COLOR.UNSAFE });
+  if (tds >= 2000) issues.push({ key:'tds_unsafe',   v: Math.round(tds),     col: CL_COLOR.UNSAFE });
+  else if (tds >= 500)  issues.push({ key:'tds_marginal',  v: Math.round(tds),     col: CL_COLOR.MARGINAL });
+  if (turb >= 5)   issues.push({ key:'turb_unsafe',  v: turb.toFixed(2),     col: CL_COLOR.UNSAFE });
+  else if (turb >= 1)   issues.push({ key:'turb_marginal', v: turb.toFixed(2),     col: CL_COLOR.MARGINAL });
+
+  const panel = document.getElementById('explain-panel');
+  if (!issues.length) { panel.style.display = 'none'; return; }
+
+  panel.style.display = 'block';
+  document.getElementById('explain-title').textContent = t.whatThisMeans;
+  document.getElementById('explain-items').innerHTML = issues.map(i =>
+    `<div class="explain-item">
+      <div class="explain-dot" style="background:${i.col}"></div>
+      <div class="explain-text">${(t[i.key]||'').replace('{v}', i.v)}</div>
+    </div>`
+  ).join('');
+}
+
+// ════════════════════════════════════════════════
+// BLUETOOTH LE
+// ════════════════════════════════════════════════
+// Service/characteristic UUIDs — must match the ESP32 firmware exactly
+const BLE_SERVICE = '12345678-1234-1234-1234-123456789012';
+const BLE_CHAR    = '12345678-1234-1234-1234-123456789013';
+
+async function startBLE() {
+  const t = LANGS[lang];
+
+  // Detect iOS — Web Bluetooth blocked by Apple at OS level
+  const isIOS = /iPad|iPhone|iPod/.test(navigator.userAgent) && !window.MSStream;
+  if (isIOS) {
+    document.getElementById('ios-note').style.display = 'block';
+    return;
+  }
+
+  if (!navigator.bluetooth) {
+    showConnError('Web Bluetooth is not supported. Open this page in Chrome on Android.');
+    return;
+  }
+
+  showConnecting();
+
+  try {
+    bleDevice = await navigator.bluetooth.requestDevice({
+      filters: [{ name: 'AquaSafe' }],
+      optionalServices: [BLE_SERVICE]
+    });
+
+    bleDevice.addEventListener('gattserverdisconnected', onBLEDisconnect);
+
+    const server = await bleDevice.gatt.connect();
+    const svc    = await server.getPrimaryService(BLE_SERVICE);
+    const chr    = await svc.getCharacteristic(BLE_CHAR);
+    await chr.startNotifications();
+
+    chr.addEventListener('characteristicvaluechanged', e => {
+      try { updateUI(JSON.parse(new TextDecoder().decode(e.target.value))); }
+      catch(_) { /* malformed packet — ignore */ }
+    });
+
+    onBLEConnected();
+
+  } catch(e) {
+    showConnectScreen();
+    if (e.name === 'NotFoundError') {
+      // User cancelled the picker — no error shown
+    } else if (e.name === 'NetworkError') {
+      showConnError('Could not connect. Make sure the AquaSafe device is powered on and nearby.');
+    } else {
+      showConnError('Connection failed: ' + e.message);
+    }
+  }
+}
+
+function onBLEConnected() {
+  const t = LANGS[lang];
+  document.getElementById('badge-dot').style.color  = '#1A9C3E';
+  document.getElementById('badge-text').textContent = t.connected;
+  showLive();
+}
+
+function onBLEDisconnect() {
+  bleDevice  = null;
+  lastData   = null;
+  const t    = LANGS[lang];
+  document.getElementById('badge-dot').style.color  = '#B07848';
+  document.getElementById('badge-text').textContent = t.notConnected;
+  showConnectScreen();
+}
+
+function disconnectBLE() {
+  if (bleDevice && bleDevice.gatt.connected) bleDevice.gatt.disconnect();
+  onBLEDisconnect();
+}
+
+function cancelConnect() {
+  // Web Bluetooth doesn't have a cancel API once requestDevice is open,
+  // but we navigate back to the connect screen
+  showConnectScreen();
+}
+
+// ════════════════════════════════════════════════
+// SCREEN STATES
+// ════════════════════════════════════════════════
+function showConnectScreen() {
+  connecting = false;
+  const t = LANGS[lang];
+  document.getElementById('connect-screen').style.display    = 'flex';
+  document.getElementById('connecting-screen').style.display = 'none';
+  document.getElementById('view-live').style.display         = 'none';
+  document.getElementById('cs-title').textContent = t.csTitle;
+  document.getElementById('cs-sub').textContent   = t.csSub;
+  document.getElementById('btn-connect-label').textContent = t.connect;
+  document.getElementById('conn-error').style.display = 'none';
+  // Show iOS note if relevant
+  const isIOS = /iPad|iPhone|iPod/.test(navigator.userAgent) && !window.MSStream;
+  document.getElementById('ios-note').style.display = isIOS ? 'block' : 'none';
+}
+
+function showConnecting() {
+  connecting = true;
+  const t = LANGS[lang];
+  document.getElementById('connect-screen').style.display    = 'none';
+  document.getElementById('connecting-screen').style.display = 'flex';
+  document.getElementById('view-live').style.display         = 'none';
+  document.getElementById('conn-title').textContent  = t.connTitle;
+  document.getElementById('conn-sub').textContent    = t.connSub;
+  document.getElementById('btn-cancel-label').textContent = t.cancel;
+}
+
+function showLive() {
+  connecting = false;
+  document.getElementById('connect-screen').style.display    = 'none';
+  document.getElementById('connecting-screen').style.display = 'none';
+  document.getElementById('view-live').style.display         = '';
+}
+
+function showConnError(msg) {
+  const el = document.getElementById('conn-error');
+  el.textContent    = msg;
+  el.style.display  = 'block';
+}
+
+// ════════════════════════════════════════════════
+// HISTORY (localStorage — 30-day rolling)
+// ════════════════════════════════════════════════
+const HIST_KEY = 'aquasafe_hist_v1';
+const HIST_TTL = 30 * 24 * 60 * 60 * 1000;
+
+function saveReading(r) {
+  let hist = loadHistory();
+  hist.unshift(r);
+  const cutoff = Date.now() - HIST_TTL;
+  hist = hist.filter(h => new Date(h.ts).getTime() > cutoff).slice(0, 500);
+  try { localStorage.setItem(HIST_KEY, JSON.stringify(hist)); } catch(_) {}
+}
+
+function loadHistory() {
+  try { return JSON.parse(localStorage.getItem(HIST_KEY) || '[]'); } catch(_) { return []; }
+}
+
+function renderHistory() {
+  const t    = LANGS[lang];
+  const hist = loadHistory();
+  const el   = document.getElementById('hist-list');
+  const foot = document.getElementById('hist-footer');
+  document.getElementById('hist-title').textContent = t.histTitle;
+
+  if (!hist.length) {
+    el.innerHTML = `<div class="empty-state">
+      <i class="fa-solid fa-clipboard-list"></i>
+      <p>${t.noReadings}</p>
+    </div>`;
+    foot.style.display = 'none';
+    return;
+  }
+
+  el.innerHTML = hist.slice(0, 60).map(r => {
+    const d       = new Date(r.ts);
+    const dateStr = d.toLocaleDateString([], { day:'numeric', month:'short' });
+    const timeStr = d.toLocaleTimeString([], { hour:'2-digit', minute:'2-digit' });
+    return `<div class="hist-item">
+      <div class="hist-dot" style="background:${CL_COLOR[r.cl]}"></div>
+      <div style="flex:1">
+        <div class="hist-cl" style="color:${CL_COLOR[r.cl]}">${t[r.cl] || r.cl}</div>
+        <div class="hist-vals">pH ${r.pH.toFixed(1)} · ${Math.round(r.tds)} ppm · ${r.turb.toFixed(2)} NTU · ${r.temp.toFixed(1)}°C</div>
+      </div>
+      <div class="hist-time">${dateStr}<br>${timeStr}</div>
+    </div>`;
+  }).join('');
+
+  foot.style.display = hist.length > 60 ? 'block' : 'none';
+  foot.textContent   = `Showing last 60 of ${hist.length} readings`;
+}
+
+// ════════════════════════════════════════════════
+// LANGUAGE
+// ════════════════════════════════════════════════
+const LANG_CODES = ['en','hi','ta','bn','mr','te'];
+
+function openLang() { document.getElementById('lang-modal').style.display = 'flex'; }
+function closeLangModal(e) {
+  if (!e || e.target === document.getElementById('lang-modal'))
+    document.getElementById('lang-modal').style.display = 'none';
+}
+
+function setLang(l) {
+  lang = l;
+  LANG_CODES.forEach(c => {
+    document.getElementById('lc-' + c).style.opacity = c === l ? '1' : '0';
+  });
+  document.getElementById('lang-label').textContent = l.toUpperCase();
+  closeLangModal();
+  refreshStrings();
+  renderHistory();
+  if (lastData) updateUI({ ...lastData, TDS_ppm: lastData.TDS_ppm });
+}
+
+function refreshStrings() {
+  const t = LANGS[lang];
+  ['live','history','info'].forEach(v =>
+    document.getElementById('nav-lbl-' + v).textContent = t[v]);
+  document.getElementById('btn-share-label').textContent      = t.shareCert;
+  document.getElementById('btn-disconnect-label').textContent = t.disconnect;
+  document.getElementById('note-temp').textContent            = t.refOnly;
+  document.getElementById('badge-text').textContent =
+    bleDevice ? t.connected : t.notConnected;
+  if (!bleDevice) {
+    document.getElementById('cs-title').textContent = t.csTitle;
+    document.getElementById('cs-sub').textContent   = t.csSub;
+    document.getElementById('btn-connect-label').textContent = t.connect;
+  }
+}
+
+// ════════════════════════════════════════════════
+// VIEW ROUTING
+// ════════════════════════════════════════════════
+function switchView(v) {
+  ['live','history','info'].forEach(x => {
+    document.getElementById('view-' + x).style.display = x === v ? '' : 'none';
+    document.getElementById('nb-' + x).classList.toggle('active', x === v);
+  });
+  // Live tab: show correct sub-screen
+  if (v === 'live') {
+    if (bleDevice)    showLive();
+    else              showConnectScreen();
+  }
+  if (v === 'history') renderHistory();
+  document.getElementById('content').scrollTop = 0;
+}
+
+// ════════════════════════════════════════════════
+// CERTIFICATE
+// ════════════════════════════════════════════════
+function openCert() {
+  if (!lastData) return;
+  drawCert();
+  document.getElementById('cert-overlay').style.display = 'flex';
+}
+function closeCertModal(e) {
+  if (!e || e.target === document.getElementById('cert-overlay'))
+    document.getElementById('cert-overlay').style.display = 'none';
+}
+
+function roundRect(ctx, x, y, w, h, r) {
+  ctx.beginPath();
+  ctx.moveTo(x+r,y); ctx.lineTo(x+w-r,y); ctx.quadraticCurveTo(x+w,y,x+w,y+r);
+  ctx.lineTo(x+w,y+h-r); ctx.quadraticCurveTo(x+w,y+h,x+w-r,y+h);
+  ctx.lineTo(x+r,y+h); ctx.quadraticCurveTo(x,y+h,x,y+h-r);
+  ctx.lineTo(x,y+r); ctx.quadraticCurveTo(x,y,x+r,y);
+  ctx.closePath();
+}
+
+function drawCert() {
+  const d   = lastData;
+  const cl  = d.cl;
+  const t   = LANGS[lang];
+  const col = CL_COLOR[cl];
+  const canvas = document.getElementById('cert-canvas');
+  const W=720, H=480;
+  canvas.width=W; canvas.height=H;
+  const ctx = canvas.getContext('2d');
+
+  ctx.fillStyle='#FFFCF8'; ctx.fillRect(0,0,W,H);
+  ctx.fillStyle=col; ctx.fillRect(0,0,W,130);
+  ctx.beginPath(); ctx.arc(W-70,-40,150,0,Math.PI*2);
+  ctx.fillStyle='rgba(255,255,255,0.07)'; ctx.fill();
+  ctx.fillStyle=col; ctx.fillRect(0,0,6,H);
+
+  ctx.fillStyle='rgba(255,255,255,0.7)';
+  ctx.font='500 12px system-ui,sans-serif';
+  ctx.fillText('AQUASAFE  ·  WATER QUALITY CERTIFICATE', 28, 36);
+  ctx.fillStyle='#fff'; ctx.font='bold 54px Georgia,serif';
+  ctx.fillText(t[cl], 28, 100);
+  ctx.fillStyle='rgba(255,255,255,0.82)'; ctx.font='400 14px system-ui,sans-serif';
+  ctx.fillText(t[cl+'Sub'], 28, 122);
+
+  const params = [
+    { label:'PH LEVEL',           value: d.pH.toFixed(2),                    unit:'',    st: pStatus('ph',   d.pH) },
+    { label:'TDS (TEMP-CORRECTED)',value: Math.round(d.TDS_corrected)+'',     unit:' ppm',st: pStatus('tds',  d.TDS_corrected) },
+    { label:'TURBIDITY',          value: d.turbidity_NTU.toFixed(2),          unit:' NTU',st: pStatus('turb', d.turbidity_NTU) },
+    { label:'TEMPERATURE',        value: d.temp_C.toFixed(1),                 unit:' °C', st: 'safe' },
+  ];
+
+  const cw=(W-68-6)/2;
+  params.forEach((p,i)=>{
+    const cx=28+(i%2)*(cw+12), cy=150+Math.floor(i/2)*105;
+    const css=PILL_CSS[p.st];
+    const bor=p.st==='safe'?CL_COLOR.SAFE:p.st==='marginal'?CL_COLOR.MARGINAL:CL_COLOR.UNSAFE;
+    ctx.fillStyle='#FFF4E6'; roundRect(ctx,cx,cy,cw,95,10); ctx.fill();
+    ctx.fillStyle=bor; ctx.fillRect(cx,cy,cw,3);
+    ctx.fillStyle='#B07848'; ctx.font='700 9px system-ui,sans-serif';
+    ctx.fillText(p.label, cx+12, cy+22);
+    ctx.fillStyle='#2C1503'; ctx.font='500 26px "Courier New",monospace';
+    ctx.fillText(p.value+p.unit, cx+12, cy+60);
+    ctx.fillStyle=css.bg; roundRect(ctx,cx+12,cy+70,70,18,9); ctx.fill();
+    ctx.fillStyle=css.color; ctx.font='700 9px system-ui,sans-serif';
+    ctx.fillText((t[p.st+'Label']||p.st).toUpperCase(), cx+22, cy+83);
+  });
+
+  ctx.strokeStyle='#F0D8B8'; ctx.lineWidth=1;
+  ctx.beginPath(); ctx.moveTo(28,H-50); ctx.lineTo(W-28,H-50); ctx.stroke();
+  ctx.fillStyle='#B07848'; ctx.font='400 11px system-ui,sans-serif';
+  ctx.fillText('Tested: '+new Date().toLocaleString(), 28, H-28);
+  const right='BIS IS:10500:2012  ·  URJA 2026';
+  ctx.fillText(right, W-28-ctx.measureText(right).width, H-28);
+  ctx.strokeStyle='#F0D8B8'; ctx.strokeRect(0.5,0.5,W-1,H-1);
+}
+
+function downloadCert() {
+  const a=document.createElement('a');
+  a.download='aquasafe-certificate.png';
+  a.href=document.getElementById('cert-canvas').toDataURL('image/png');
+  a.click();
+}
+
+async function shareCert() {
+  document.getElementById('cert-canvas').toBlob(async blob => {
+    const file=new File([blob],'aquasafe-certificate.png',{type:'image/png'});
+    if (navigator.share && navigator.canShare && navigator.canShare({files:[file]})) {
+      try { await navigator.share({title:'AquaSafe Water Quality Certificate',files:[file]}); }
+      catch(_) { downloadCert(); }
+    } else { downloadCert(); }
+  });
+}
+
+// ════════════════════════════════════════════════
+// INIT
+// ════════════════════════════════════════════════
+showConnectScreen();
+</script>
+</body>
+</html>
