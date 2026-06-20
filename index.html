@@ -3,7 +3,7 @@
 <head>
   <meta charset="UTF-8">
   <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
-  <meta name="theme-color" content="#C47138">
+  <meta name="theme-color" content="#5BC8F5">
   <meta name="mobile-web-app-capable" content="yes">
   <meta name="apple-mobile-web-app-capable" content="yes">
   <meta name="apple-mobile-web-app-status-bar-style" content="default">
@@ -16,21 +16,21 @@
     *, *::before, *::after { box-sizing: border-box; margin: 0; padding: 0; }
 
     :root {
-      --bg:           #FFFCF8;
-      --bg-card:      #FFF4E6;
-      --border:       #F0D8B8;
-      --border-mid:   #E0C09A;
-      --text:         #2C1503;
-      --text-mid:     #7A4028;
-      --text-soft:    #B07848;
-      --accent:       #C47138;
-      --accent-dark:  #8A4A1E;
-      --safe:         #1A9C3E;
-      --safe-bg:      #D4F2DE;
-      --safe-col:     #0D6B28;
-      --marginal:     #C07800;
-      --marginal-bg:  #FEE9BE;
-      --marginal-col: #8A5A00;
+      --bg:           #F0FAFF;
+      --bg-card:      #E0F4FD;
+      --border:       #B8E4F8;
+      --border-mid:   #7DCEF4;
+      --text:         #0A2540;
+      --text-mid:     #1A6080;
+      --text-soft:    #4A9FBF;
+      --accent:       #29B6F6;
+      --accent-dark:  #0288D1;
+      --safe:         #00BFA5;
+      --safe-bg:      #C8F7F0;
+      --safe-col:     #00695C;
+      --marginal:     #0288D1;
+      --marginal-bg:  #B3E5FC;
+      --marginal-col: #01579B;
       --unsafe:       #C82B2B;
       --unsafe-bg:    #FCCFCE;
       --unsafe-col:   #8A1A1A;
@@ -42,7 +42,7 @@
 
     html, body {
       height: 100%; width: 100%; overflow: hidden;
-      background: #C47138;
+      background: #5BC8F5;
       font-family: var(--font-sans);
       -webkit-font-smoothing: antialiased;
     }
@@ -50,7 +50,7 @@
     #app {
       position: fixed; inset: 0;
       display: flex; justify-content: center; align-items: center;
-      background: radial-gradient(ellipse at 30% 0%, #F5C27A 0%, #C47138 55%, #7A3010 100%);
+      background: radial-gradient(ellipse at 30% 0%, #E0F8FF 0%, #5BC8F5 45%, #0288D1 100%);
     }
 
     #shell {
@@ -60,7 +60,7 @@
       display: flex; flex-direction: column;
       overflow: hidden;
       border-radius: 40px;
-      box-shadow: 0 40px 80px rgba(44,21,3,0.45);
+      box-shadow: 0 40px 80px rgba(10,37,64,0.30);
     }
 
     @media (max-width: 430px) {
@@ -146,9 +146,9 @@
     }
     .pulse-ring i { font-size: 36px; color: var(--accent); }
     @keyframes pulse-ring {
-      0%   { box-shadow: 0 0 0 0 rgba(196,113,56,0.4); }
-      70%  { box-shadow: 0 0 0 20px rgba(196,113,56,0); }
-      100% { box-shadow: 0 0 0 0 rgba(196,113,56,0); }
+      0%   { box-shadow: 0 0 0 0 rgba(41,182,246,0.4); }
+      70%  { box-shadow: 0 0 0 20px rgba(41,182,246,0); }
+      100% { box-shadow: 0 0 0 0 rgba(41,182,246,0); }
     }
     .connecting-title {
       font-family: var(--font-serif); font-size: 24px;
@@ -301,7 +301,7 @@
     .info-prose strong { color: var(--text); }
 
     /* ── LANGUAGE MODAL ── */
-    .modal-overlay { position: fixed; inset: 0; background: rgba(44,21,3,0.5); z-index: 100; display: flex; align-items: flex-end; justify-content: center; }
+    .modal-overlay { position: fixed; inset: 0; background: rgba(10,37,64,0.5); z-index: 100; display: flex; align-items: flex-end; justify-content: center; }
     .modal-sheet { background: var(--bg); border-radius: 28px 28px 0 0; width: 100%; max-width: 430px; padding: 8px 0 40px; }
     .modal-handle { width: 36px; height: 4px; border-radius: 2px; background: var(--border-mid); margin: 10px auto 16px; }
     .modal-title { font-family: var(--font-serif); font-size: 20px; color: var(--text); padding: 0 20px 12px; border-bottom: 1px solid var(--border); margin-bottom: 4px; }
@@ -312,7 +312,7 @@
     .lang-check { color: var(--accent); font-weight: 700; }
 
     /* ── CERTIFICATE MODAL ── */
-    .cert-overlay { position: fixed; inset: 0; background: rgba(44,21,3,0.65); z-index: 100; display: flex; align-items: center; justify-content: center; padding: 20px; }
+    .cert-overlay { position: fixed; inset: 0; background: rgba(10,37,64,0.65); z-index: 100; display: flex; align-items: center; justify-content: center; padding: 20px; }
     .cert-card { background: var(--bg); border-radius: var(--r-xl); padding: 18px; width: 100%; max-width: 390px; }
     #cert-canvas { width: 100%; border-radius: var(--r-lg); display: block; }
     .cert-actions { display: flex; gap: 8px; margin-top: 10px; }
@@ -335,7 +335,7 @@
         <i class="fa-solid fa-globe"></i><span id="lang-label">EN</span>
       </button>
       <div class="chip" id="conn-badge">
-        <i class="fa-solid fa-circle" id="badge-dot" style="font-size:7px;color:#B07848"></i>
+        <i class="fa-solid fa-circle" id="badge-dot" style="font-size:7px;color:#4A9FBF"></i>
         <span id="badge-text">Not connected</span>
       </div>
     </div>
@@ -887,7 +887,7 @@ function onBLEDisconnect() {
   bleDevice  = null;
   lastData   = null;
   const t    = LANGS[lang];
-  document.getElementById('badge-dot').style.color  = '#B07848';
+  document.getElementById('badge-dot').style.color  = '#4A9FBF';
   document.getElementById('badge-text').textContent = t.notConnected;
   showConnectScreen();
 }
@@ -1085,7 +1085,7 @@ function drawCert() {
   canvas.width=W; canvas.height=H;
   const ctx = canvas.getContext('2d');
 
-  ctx.fillStyle='#FFFCF8'; ctx.fillRect(0,0,W,H);
+  ctx.fillStyle='#F0FAFF'; ctx.fillRect(0,0,W,H);
   ctx.fillStyle=col; ctx.fillRect(0,0,W,130);
   ctx.beginPath(); ctx.arc(W-70,-40,150,0,Math.PI*2);
   ctx.fillStyle='rgba(255,255,255,0.07)'; ctx.fill();
@@ -1111,24 +1111,24 @@ function drawCert() {
     const cx=28+(i%2)*(cw+12), cy=150+Math.floor(i/2)*105;
     const css=PILL_CSS[p.st];
     const bor=p.st==='safe'?CL_COLOR.SAFE:p.st==='marginal'?CL_COLOR.MARGINAL:CL_COLOR.UNSAFE;
-    ctx.fillStyle='#FFF4E6'; roundRect(ctx,cx,cy,cw,95,10); ctx.fill();
+    ctx.fillStyle='#E0F4FD'; roundRect(ctx,cx,cy,cw,95,10); ctx.fill();
     ctx.fillStyle=bor; ctx.fillRect(cx,cy,cw,3);
-    ctx.fillStyle='#B07848'; ctx.font='700 9px system-ui,sans-serif';
+    ctx.fillStyle='#4A9FBF'; ctx.font='700 9px system-ui,sans-serif';
     ctx.fillText(p.label, cx+12, cy+22);
-    ctx.fillStyle='#2C1503'; ctx.font='500 26px "Courier New",monospace';
+    ctx.fillStyle='#0A2540'; ctx.font='500 26px "Courier New",monospace';
     ctx.fillText(p.value+p.unit, cx+12, cy+60);
     ctx.fillStyle=css.bg; roundRect(ctx,cx+12,cy+70,70,18,9); ctx.fill();
     ctx.fillStyle=css.color; ctx.font='700 9px system-ui,sans-serif';
     ctx.fillText((t[p.st+'Label']||p.st).toUpperCase(), cx+22, cy+83);
   });
 
-  ctx.strokeStyle='#F0D8B8'; ctx.lineWidth=1;
+  ctx.strokeStyle='#B8E4F8'; ctx.lineWidth=1;
   ctx.beginPath(); ctx.moveTo(28,H-50); ctx.lineTo(W-28,H-50); ctx.stroke();
-  ctx.fillStyle='#B07848'; ctx.font='400 11px system-ui,sans-serif';
+  ctx.fillStyle='#4A9FBF'; ctx.font='400 11px system-ui,sans-serif';
   ctx.fillText('Tested: '+new Date().toLocaleString(), 28, H-28);
   const right='BIS IS:10500:2012  ·  URJA 2026';
   ctx.fillText(right, W-28-ctx.measureText(right).width, H-28);
-  ctx.strokeStyle='#F0D8B8'; ctx.strokeRect(0.5,0.5,W-1,H-1);
+  ctx.strokeStyle='#B8E4F8'; ctx.strokeRect(0.5,0.5,W-1,H-1);
 }
 
 function downloadCert() {
