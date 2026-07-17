@@ -753,7 +753,8 @@ const PILL_CSS = {
 function updateUI(raw) {
   const t    = LANGS[lang];
   const pH   = raw.pH;
-  const temp = raw.temp_C;
+  const tempMissing = (raw.temp_C == null || isNaN(raw.temp_C));
+  const temp = tempMissing ? 25 : raw.temp_C; // fall back to 25C (no-op correction) if sensor is down
   const turb = raw.turbidity_NTU;
   const tds  = correctTDS(raw.TDS_ppm, temp);
   const cl   = classify(pH, tds, turb);
@@ -779,11 +780,12 @@ function updateUI(raw) {
   setPCard('ph',   pH.toFixed(2),        '',     pStatus('ph',   pH));
   setPCard('tds',  Math.round(tds)+'',   ' ppm', pStatus('tds',  tds));
   setPCard('turb', turb.toFixed(2),      ' NTU', pStatus('turb', turb));
-  document.getElementById('val-temp').innerHTML =
-    temp.toFixed(1) + '<span class="unit"> °C</span>';
+  document.getElementById('val-temp').innerHTML = tempMissing
+    ? '—<span class="unit"> °C (offline)</span>'
+    : temp.toFixed(1) + '<span class="unit"> °C</span>';
 
   renderExplanations(pH, tds, turb, t);
-  saveReading({ pH, tds, turb, temp, cl, ts: now.toISOString() });
+  saveReading({ pH, tds, turb: turb, temp: tempMissing ? null : temp, cl, ts: now.toISOString() });
 }
 
 function setPCard(id, val, unit, status) {
@@ -987,7 +989,7 @@ function renderHistory() {
       <div class="hist-dot" style="background:${CL_COLOR[r.cl]}"></div>
       <div style="flex:1">
         <div class="hist-cl" style="color:${CL_COLOR[r.cl]}">${t[r.cl] || r.cl}</div>
-        <div class="hist-vals">pH ${r.pH.toFixed(1)} · ${Math.round(r.tds)} ppm · ${r.turb.toFixed(2)} NTU · ${r.temp.toFixed(1)}°C</div>
+        <div class="hist-vals">pH ${r.pH.toFixed(1)} · ${Math.round(r.tds)} ppm · ${r.turb.toFixed(2)} NTU · ${r.temp != null ? r.temp.toFixed(1)+'°C' : '—°C'}</div>
       </div>
       <div class="hist-time">${dateStr}<br>${timeStr}</div>
     </div>`;
@@ -1103,7 +1105,7 @@ function drawCert() {
     { label:'PH LEVEL',           value: d.pH.toFixed(2),                    unit:'',    st: pStatus('ph',   d.pH) },
     { label:'TDS (TEMP-CORRECTED)',value: Math.round(d.TDS_corrected)+'',     unit:' ppm',st: pStatus('tds',  d.TDS_corrected) },
     { label:'TURBIDITY',          value: d.turbidity_NTU.toFixed(2),          unit:' NTU',st: pStatus('turb', d.turbidity_NTU) },
-    { label:'TEMPERATURE',        value: d.temp_C.toFixed(1),                 unit:' °C', st: 'safe' },
+    { label:'TEMPERATURE',        value: (d.temp_C != null ? d.temp_C.toFixed(1) : '—'), unit: (d.temp_C != null ? ' °C' : ' (offline)'), st: 'safe' },
   ];
 
   const cw=(W-68-6)/2;
