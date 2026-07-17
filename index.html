@@ -375,6 +375,7 @@
 
     <!-- ── LIVE VIEW (shown when connected) ── -->
     <div id="view-live">
+      <div id="debug-error" style="display:none;background:#FCCFCE;color:#8A1A1A;padding:10px;border-radius:8px;margin-bottom:10px;font-size:12px;word-break:break-all;"></div>
       <div class="class-banner" id="class-banner">
         <div class="banner-batt" id="batt-display">
           <i class="fa-solid fa-battery-three-quarters"></i>
@@ -772,7 +773,7 @@ function updateUI(raw) {
   document.getElementById('banner-ts').textContent =
     now.toLocaleTimeString([], { hour:'2-digit', minute:'2-digit', second:'2-digit' });
 
-  if (raw.battery_pct != null) {
+  if (raw.battery_pct != null && raw.battery_pct >= 0) {
     document.getElementById('batt-display').style.display = 'flex';
     document.getElementById('batt-val').textContent = raw.battery_pct;
   }
@@ -860,8 +861,17 @@ async function startBLE() {
     await chr.startNotifications();
 
     chr.addEventListener('characteristicvaluechanged', e => {
-      try { updateUI(JSON.parse(new TextDecoder().decode(e.target.value))); }
-      catch(_) { /* malformed packet — ignore */ }
+      const rawStr = new TextDecoder().decode(e.target.value);
+      try {
+        updateUI(JSON.parse(rawStr));
+      } catch(err) {
+        console.error('AquaSafe parse/render error:', err, 'raw packet:', rawStr);
+        const el = document.getElementById('debug-error');
+        if (el) {
+          el.style.display = 'block';
+          el.textContent = 'Debug: ' + err.message + ' | raw: ' + rawStr.slice(0, 200);
+        }
+      }
     });
 
     onBLEConnected();
